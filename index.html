@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Shopping List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container" id="app">
+        <div class="row mt-5">
+            <div class="col-12 border-bottom mb-5">
+                <h2>{{ name }}</h2>
+            </div>
+
+            <div class="col-4">
+
+                <form action="">
+
+                    <div class="form-group mr-1">
+                        <label>Day of the Week</label>
+                        <input type="text" class="form-control" placeholder="Day of the week..." v-model="recipe.day">
+                    </div>
+
+
+                    <div class="form-group mr-1">
+                        <label>Recipe</label>
+                        <input type="text" class="form-control" placeholder="Recipe name..." v-model="recipe.title">
+                    </div>
+
+                    <div class="form-group mr-1">
+                        <label>Ingredients</label>
+                        <input type="text" class="form-control" placeholder="Ingredients..." v-model="recipe.ingredients">
+                    </div>
+
+                    <div class="form-group ml-1">
+                        <button v-if="!isEdit" class="btn btn-lg btn-rounded btn-success" @click.prevent="addRecipe(recipe)">Add Recipe</button>
+                        <button v-if="isEdit" class="btn btn-lg btn-rounded btn-primary" @click.prevent="updateRecipe(recipe)">Update Recipe</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-8 border-left">
+                
+                <div class="recipes" v-if="recipes.length">
+                        
+                    <div class="col-12 mb-2" v-for="recipe in recipes">
+
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ recipe.day}}</h5>
+
+                                <p class="card-text">{{ recipe.title }}</p>
+                                <p class="card-text">{{ recipe.ingredients }}</p>
+
+                                <a href="#" class="btn btn-sm btn-primary" @click="editRecipe(recipe)">Edit</a>
+                                <a href="#" class="btn btn-sm btn-danger" @click="removeRecipe(recipe.id)">Delete</a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else>
+                    List of recipes empty...
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+    <script>
+        let app = new Vue({
+            el: "#app",
+            data: {
+                name: 'List of Recipes',
+                recipes: [],
+                recipe: {
+                    id: '',
+                    day: '',
+                    title: '',
+                    ingredients: []
+                },
+                isEdit: false
+            },
+            created() {
+                this.recipes = JSON.parse(localStorage.getItem('recipesData'));
+            },
+            methods: {
+                addRecipe(recipe) {
+                    let recipes = localStorage.getItem('recipesData');
+
+                    recipe.id = new Date().getTime();
+
+                    if(recipes) {
+                        //update recipes in local storage
+                        recipes = JSON.parse(recipes);
+                        recipes.push(recipe);
+                    } else {
+                        //create this key in local storage
+                        recipes = [recipe]
+                    }
+                    //update recipesData with new data to reload data
+                    this.recipes = recipes;
+
+                    //update local storage independently of new recipe
+                    localStorage.setItem('recipesData', JSON.stringify(recipes));
+
+                    this.recipe = {}
+                    
+                },
+                removeRecipe(recipeId) {
+                    let recipes = localStorage.getItem('recipesData');
+
+                    if(!recipes) return ;
+
+                    recipes = JSON.parse(recipes);
+
+                    recipes = recipes.filter((recipe) => {
+                        return recipe.id != recipeId;
+                    });
+
+                    this.recipes = recipes;
+
+                    localStorage.setItem('recipesData', JSON.stringify(recipes));
+                },
+                editRecipe(recipe) {
+                    this.recipe = recipe;
+                    this.isEdit = true;
+                },
+                updateRecipe(recipe) {
+                   let recipes = this.recipes.map(recipeMap => {
+                       if(recipeMap.id == recipe.id) {
+                           return recipe;
+                        }
+                        return recipeMap;   
+                   });
+
+                   this.recipes = recipes;
+                   this.isEdit = false;
+
+                   localStorage.setItem('recipesData', JSON.stringify(recipes));
+
+                   location.reload();
+
+                }
+            }
+        })
+    </script>
+</body>
+</html>

@@ -37,6 +37,8 @@
                         <button v-if="!isEdit" class="btn btn-lg btn-rounded btn-success" @click.prevent="addRecipe(recipe)">Add Recipe</button>
                         <button v-if="isEdit" class="btn btn-lg btn-rounded btn-primary" @click.prevent="updateRecipe(recipe)">Update Recipe</button>
                     </div>
+
+                    <div class="alert alert-danger" v-if="feedback"><small>{{ feedback }}</small></div>
                 </form>
             </div>
 
@@ -76,32 +78,38 @@
                     title: '',
                     ingredients: []
                 },
-                isEdit: false
+                isEdit: false,
+                feedback: null
             },
             created() {
                 this.recipes = JSON.parse(localStorage.getItem('recipesData'));
             },
             methods: {
                 addRecipe(recipe) {
-                    let recipes = localStorage.getItem('recipesData');
+                    if (recipe.title && recipe.day && recipe.ingredients) {
+                        let recipes = localStorage.getItem('recipesData');
 
-                    recipe.id = new Date().getTime();
+                        recipe.id = new Date().getTime();
 
-                    if(recipes) {
-                        //update recipes in local storage
-                        recipes = JSON.parse(recipes);
-                        recipes.push(recipe);
+                        if(recipes) {
+                            //update recipes in local storage
+                            recipes = JSON.parse(recipes);
+                            recipes.push(recipe);
+                        } else {
+                            //create this key in local storage
+                            recipes = [recipe]
+                        }
+                        //update recipesData with new data to reload data
+                        this.recipes = recipes;
+
+                        //update local storage independently of new recipe
+                        localStorage.setItem('recipesData', JSON.stringify(recipes));
+                        this.feedback = null
+                        this.recipe = {}
                     } else {
-                        //create this key in local storage
-                        recipes = [recipe]
+                        this.feedback = 'Please, fill out all fields!';
                     }
-                    //update recipesData with new data to reload data
-                    this.recipes = recipes;
-
-                    //update local storage independently of new recipe
-                    localStorage.setItem('recipesData', JSON.stringify(recipes));
-
-                    this.recipe = {}
+                    
                     
                 },
                 removeRecipe(recipeId) {
